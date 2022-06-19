@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,9 +32,12 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'channels', # django channels for notification
+    'notification', # our app for sending notifications
+
     'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
+    'django.contrib.auth',  # core authentication framework
+    'django.contrib.contenttypes',  # manage permissions related to role
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -41,20 +45,26 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware', # manage sessions across requests
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',   # associates user with requests using session
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'uzme_backend.urls'
 
+SETTINGS_PATH = os.path.dirname(os.path.dirname(__file__))
+TEMPLATE_DIRS = (
+    os.path.join(SETTINGS_PATH, 'templates'),   # django will look for /templates for templates
+)
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(SETTINGS_PATH, 'templates'),
+        os.path.join(BASE_DIR, 'uzme_backend', 'templates', 'uzme_backend'),],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,13 +78,36 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'uzme_backend.wsgi.application'
+ASGI_APPLICATION = 'uzme_backend.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
+# CHANNEL_LAYERS = {'default': {
+#     'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }
 
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'default': {    # by elephantsql
+       'ENGINE': 'django.db.backends.postgresql',
+       'NAME': 'mutzlaut',
+       'USER': 'mutzlaut',
+       'PASSWORD': 'XGC7d8rOoSurlFdq0VMQ2cRfiuV11zFN',
+       'HOST': 'tiny.db.elephantsql.com',
+       'PORT': '5432',
+   }
+    ,'offline': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
@@ -121,5 +154,6 @@ STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
